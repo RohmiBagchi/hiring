@@ -11,7 +11,7 @@ pipeline {
         
         stage('Docker Build') {
             steps {
-                sh "docker build . -t rohmi/hiring:0.0.2 ."
+                sh "docker build -t rohmi/hiring:0.0.2 ."
             }
         }
         stage('Docker Push') {
