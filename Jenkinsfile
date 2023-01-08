@@ -2,24 +2,25 @@ pipeline {
     agent any
 
     stages {
-        stage('Git Checkout') {
-            steps {
-                git branch: 'main', credentialsId: 'git-creds', url: 'https://github.com/RohmiBagchi/hiring'
-            }
-        }
+        
         stage('Maven Build') {
             steps {
-                 sh 'mvn clean package'
+                sh "mvn clean package"
             }
         }
-        stage('Tomcat Deploy') {
+        
+        stage('Docker Build') {
             steps {
-                sshagent(['tomcat-creds']) {
-                   sh "scp -o StrictHostKeyChecking=no target/*.war ec2-user@3.144.180.67:/opt/tomcat9/webapps"
-                   sh "ssh ec2-user@3.144.180.67 //opt/tomcat9/bin/shutdown.sh"
-                   sh "ssh ec2-user@3.144.180.67 //opt/tomcat9/bin/startup.sh"
-				       }
+                sh "docker build . -t rohmi/hiring:0.0.2 ."
             }
-		}	
-	}	
-}	
+        }
+        stage('Docker Push') {
+            steps {
+                withCredentials([string(credentialsId: 'docker-hub', variable: 'hubPwd')]) {
+                    sh "docker login -u kammana -p ${hubPwd}"
+                    sh "docker push kammana/hiring:0.0.2"
+                }
+            }
+       	}
+    }
+}
